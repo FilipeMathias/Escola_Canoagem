@@ -25,7 +25,7 @@ public class Inscricao {
         this.operacoes = new HashMap<>();
     }
 
-    public void checkIn() {
+    public void increver_aluno() {
         String insercao;
         if (aula.getCanoa().isStatus()) {
             if (inscritos.isEmpty()) {
@@ -47,43 +47,54 @@ public class Inscricao {
         }
 
     }
-    public void verificar_aluno(){
+    private void verificar_aluno() throws Exception {
         String nome_verificado = aluno.getNome();
-        boolean encontrado = true;
-        for(String nome: inscritos) {
+
+        boolean encontrado = false;
+        for (String nome : inscritos) {
             if (nome.equals(nome_verificado)) {
+                encontrado = true;
                 break;
-            } else {
-                encontrado = false;
             }
         }
-        if(!encontrado){
+
+        if (encontrado) {
+            throw new Exception("Aluno já inscrito!");
+        } else {
             this.verificar_numeroAula();
         }
     }
 
-    public void verificar_numeroAula(){
+
+
+    private void verificar_numeroAula() throws Exception{
         if(aluno.getPlano().getN_aulas()>1){
             this.verificar_mensalidade();
+        }else {
+            throw new Exception("Excedido o número de aulas do seu plano!");
         }
 
     }
 
-    public void verificar_mensalidade(){
+    private void verificar_mensalidade() throws Exception{
         YearMonth anoMesDaData = YearMonth.from(dataHora);
         if(aluno.getPlano().getMensalidade().equals(anoMesDaData)){
             this.verificar_horario();
+        }else{
+            throw new Exception("Mensalidade do correte mês em aberto, impossibilitando marcação de aulas!");
         }
     }
 
 
 
-    public void verificar_horario(){
+    private void verificar_horario() throws Exception{
         LocalDateTime hora_checkIn = dataHora;
         LocalDateTime hora_aula    = aula.getData_hora();
 
         if(hora_aula.getHour() - hora_checkIn.getHour() > 1){
-            this.checkIn();
+            this.increver_aluno();
+        }else{
+            throw new Exception("Horário de check in inválido!");
         }
     }
 
@@ -105,7 +116,7 @@ public class Inscricao {
 
     }
 
-    public void verificar_cancelamento(LocalDateTime hora_cancelamento, Aluno aluno){
+    private void verificar_cancelamento(LocalDateTime hora_cancelamento, Aluno aluno){
 
         LocalDateTime hora_aula = aula.getData_hora();
         String remocao;
@@ -119,6 +130,11 @@ public class Inscricao {
             operacoes.put(hora_cancelamento, remocao);
         }
 
+
+    }
+
+    public void checkIn() throws Exception {
+        this.verificar_aluno();
 
     }
 
