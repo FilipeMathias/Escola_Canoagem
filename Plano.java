@@ -1,13 +1,13 @@
 import java.time.YearMonth;
 
 public class Plano {
-    private Float valor;
+    private double valor;
     private int mes;
     private int ano;
     private int n_aulas;
     private YearMonth mensalidade;
 
-    public Plano(Float valor, int mes, int ano, int n_aulas) {
+    public Plano(double valor, int mes, int ano, int n_aulas) {
         this.valor = valor;
         this.mes = mes;
         this.ano = ano;

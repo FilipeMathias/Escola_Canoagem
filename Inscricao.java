@@ -1,45 +1,39 @@
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.time.YearMonth;
 
 
 
 public class Inscricao {
     private Aula aula;
-    private List<String> inscritos;
-    private List<String> fila;
-    private Map<LocalDateTime, String> operacoes;
+    private ArrayDeque<Participante> inscritos;
+    private ArrayDeque<Participante> fila;
+    private Map<String, LocalDateTime> operacoes;
 
 
     public Inscricao(Aula aula) {
         this.aula = aula;
-        this.inscritos = new ArrayList<>();
-        this.fila = new ArrayList<>();
-        this.operacoes = new HashMap<>();
+        this.inscritos = new ArrayDeque<>();
+        this.fila = new ArrayDeque<>();
+        this.operacoes = new LinkedHashMap<>();
     }
 
-    private void increver_aluno(Aluno aluno, LocalDateTime dataHora) {
+    private void increver_aluno(Participante participante, LocalDateTime dataHora) {
         String insercao;
         if (aula.getCanoa().isStatus()) {
             if (inscritos.isEmpty()) {
-                inscritos.add(aula.getInstrutor().getNome());
-                aula.getCanoa().ocuparVaga();
-                insercao = "checkIn" + aula.getInstrutor().getNome();
-                operacoes.put(dataHora, insercao);
-
-            } else {
-                inscritos.add(aluno.getNome());
-                aula.getCanoa().ocuparVaga();
-                insercao = "checkIn" + aluno.getNome();
-                operacoes.put(dataHora, insercao);
+                inscritos.addLast(aula.getInstrutor());
             }
+
+            inscritos.addFirst(participante);
+            aula.getCanoa().ocuparVaga();
+            insercao = "checkIn " + participante.getNome();
+            operacoes.put(insercao, dataHora);
+
         } else {
-            fila.add(aluno.getNome());
-            insercao = "Entrou em lista de espera" + aluno.getNome();
-            operacoes.put(dataHora, insercao);
+            fila.addFirst(participante);
+            insercao = "Entrou em lista de espera" + participante.getNome();
+            operacoes.put(insercao, dataHora);
         }
 
     }
@@ -47,8 +41,8 @@ public class Inscricao {
         String nome_verificado = aluno.getNome();
 
         boolean encontrado = false;
-        for (String nome : inscritos) {
-            if (nome.equals(nome_verificado)) {
+        for (Participante participante : inscritos) {
+            if (participante.getNome().equals(nome_verificado)) {
                 encontrado = true;
                 break;
             }
@@ -95,35 +89,31 @@ public class Inscricao {
     }
 
     public void cancelar(LocalDateTime hora_cancelamento, Aluno aluno) {
+        inscritos.remove(aluno); // Corrigido
 
-        String inscricao;
-
-        inscritos.remove(aluno.getNome());
         this.verificar_cancelamento(hora_cancelamento, aluno);
 
-
-
         if (!fila.isEmpty()) {
-            inscritos.add(fila.getFirst());
-            fila.removeFirst();
-            inscricao = "Inscrito aluno em lista de espera: " + fila.getFirst();
-            operacoes.put(hora_cancelamento, inscricao);
+            Participante novoAluno = fila.removeFirst(); // remove e guarda
+            inscritos.addLast(novoAluno);
+            String inscricao = "Inscrito aluno em lista de espera: " + novoAluno.getNome();
+            operacoes.put(inscricao, hora_cancelamento);
         }
-
     }
+
 
     private void verificar_cancelamento(LocalDateTime hora_cancelamento, Aluno aluno){
 
         LocalDateTime hora_aula = aula.getData_hora();
         String remocao;
 
-        if(hora_aula.getHour() - hora_cancelamento.getHour() < 1){
-            this.finalizar_aula(aluno);
+        if(hora_aula.getHour() - hora_cancelamento.getHour() > 1){
+            this.deduzir_aula(aluno);
             remocao = "Cancelamento aluno: " + aluno.getNome();
-            operacoes.put(hora_cancelamento, remocao);
+            operacoes.put(remocao, hora_cancelamento);
         }else{
             remocao = "Cancelamento tardio aluno: " + aluno.getNome();
-            operacoes.put(hora_cancelamento, remocao);
+            operacoes.put(remocao, hora_cancelamento);
         }
 
 
@@ -134,10 +124,23 @@ public class Inscricao {
 
     }
 
-    public void finalizar_aula(Aluno aluno){
-        int n_aulas             = aluno.getPlano().getN_aulas();
+    private void deduzir_aula(Aluno aluno){
+        int n_aulas = aluno.getPlano().getN_aulas();
         aluno.getPlano().setN_aulas(n_aulas-1);
 
+    }
+
+    public void finalizar_aula(){
+        String aula_realizada = "Aula realizada com os seguintes alunos: ";
+        for(Participante inscrito: inscritos ){
+            if(inscrito instanceof Aluno){
+                Aluno alun = (Aluno) inscrito;
+                deduzir_aula(alun);
+                aula_realizada += alun.getNome() + ',';
+            }
+
+        }
+        operacoes.put(aula_realizada, aula.getData_hora());
     }
 
 
@@ -149,15 +152,15 @@ public class Inscricao {
 
 
 
-    public List<String> getInscritos() {
+    public ArrayDeque<Participante> getInscritos() {
         return inscritos;
     }
 
-    public List<String> getFila() {
+    public  ArrayDeque<Participante> getFila() {
         return fila;
     }
 
-    public Map<LocalDateTime, String> getOperacoes() {
+    public Map<String, LocalDateTime> getOperacoes() {
         return operacoes;
     }
 }

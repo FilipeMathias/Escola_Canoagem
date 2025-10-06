@@ -1,6 +1,6 @@
 public class Aluno extends Participante {
     private String nome;
-    private Plano plano;
+    private final Plano plano;
 
 
     public Aluno(String nome, Plano plano) {
