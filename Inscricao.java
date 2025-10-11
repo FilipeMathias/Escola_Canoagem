@@ -18,26 +18,27 @@ public class Inscricao {
         this.operacoes = new LinkedHashMap<>();
     }
 
-    private void increver_aluno(Participante participante, LocalDateTime dataHora) {
+    private void inscreverAluno(Participante participante, LocalDateTime dataHora) {
         String insercao;
         if (aula.getCanoa().isStatus()) {
             if (inscritos.isEmpty()) {
                 inscritos.addLast(aula.getInstrutor());
+                aula.getCanoa().ocuparVaga();
             }
 
             inscritos.addFirst(participante);
             aula.getCanoa().ocuparVaga();
-            insercao = "checkIn " + participante.getNome();
+            insercao = "checkIn: " + participante.getNome();
             operacoes.put(insercao, dataHora);
 
         } else {
             fila.addFirst(participante);
-            insercao = "Entrou em lista de espera" + participante.getNome();
+            insercao = "Entrou em lista de espera: " + participante.getNome();
             operacoes.put(insercao, dataHora);
         }
 
     }
-    private void verificar_aluno(Aluno aluno, LocalDateTime dataHora) throws Exception {
+    private void verificarAluno(Aluno aluno, LocalDateTime dataHora) throws Exception {
         String nome_verificado = aluno.getNome();
 
         boolean encontrado = false;
@@ -51,25 +52,25 @@ public class Inscricao {
         if (encontrado) {
             throw new Exception("Aluno já inscrito!");
         } else {
-            this.verificar_numeroAula(aluno, dataHora);
+            this.verificarNumeroAula(aluno, dataHora);
         }
     }
 
 
 
-    private void verificar_numeroAula(Aluno aluno, LocalDateTime dataHora) throws Exception{
-        if(aluno.getPlano().getN_aulas()>1){
-            this.verificar_mensalidade(aluno, dataHora);
+    private void verificarNumeroAula(Aluno aluno, LocalDateTime dataHora) throws Exception{
+        if(aluno.getQtdAulas()>1){
+            this.verificarMensalidade(aluno, dataHora);
         }else {
             throw new Exception("Excedido o número de aulas do seu plano!");
         }
 
     }
 
-    private void verificar_mensalidade(Aluno aluno, LocalDateTime dataHora) throws Exception{
+    private void verificarMensalidade(Aluno aluno, LocalDateTime dataHora) throws Exception{
         YearMonth anoMesDaData = YearMonth.from(dataHora);
         if(aluno.getPlano().getMensalidade().equals(anoMesDaData)){
-            this.verificar_horario(aluno, dataHora);
+            this.verificarHorario(aluno, dataHora);
         }else{
             throw new Exception("Mensalidade do correte mês em aberto, impossibilitando marcação de aulas!");
         }
@@ -77,41 +78,50 @@ public class Inscricao {
 
 
 
-    private void verificar_horario(Aluno aluno, LocalDateTime dataHora) throws Exception{
+    private void verificarHorario(Aluno aluno, LocalDateTime dataHora) throws Exception{
         LocalDateTime hora_checkIn = dataHora;
         LocalDateTime hora_aula    = aula.getData_hora();
 
         if(hora_aula.getHour() - hora_checkIn.getHour() > 1){
-            this.increver_aluno(aluno, dataHora);
+            this.inscreverAluno(aluno, dataHora);
         }else{
             throw new Exception("Horário de check in inválido!");
         }
     }
 
     public void cancelar(LocalDateTime hora_cancelamento, Aluno aluno) {
-        inscritos.remove(aluno); // Corrigido
 
-        this.verificar_cancelamento(hora_cancelamento, aluno);
+        for(Participante participante: inscritos) {
+            if(participante.getNome().equals(aluno.getNome())) {
+                inscritos.remove(aluno);
+                this.verificarCancelamento(hora_cancelamento, aluno);
+                if (!fila.isEmpty()) {
+                    Participante novoAluno = fila.removeLast(); // remove e guarda
+                    inscritos.addLast(novoAluno);
+                    String inscricao = "Inscrito aluno em lista de espera: " + novoAluno.getNome();
+                    operacoes.put(inscricao, hora_cancelamento);
+                }
 
-        if (!fila.isEmpty()) {
-            Participante novoAluno = fila.removeFirst(); // remove e guarda
-            inscritos.addLast(novoAluno);
-            String inscricao = "Inscrito aluno em lista de espera: " + novoAluno.getNome();
-            operacoes.put(inscricao, hora_cancelamento);
+                break;
+            }
         }
+
+
+
+
     }
 
 
-    private void verificar_cancelamento(LocalDateTime hora_cancelamento, Aluno aluno){
+    private void verificarCancelamento(LocalDateTime hora_cancelamento, Aluno aluno){
 
         LocalDateTime hora_aula = aula.getData_hora();
         String remocao;
 
         if(hora_aula.getHour() - hora_cancelamento.getHour() > 1){
-            this.deduzir_aula(aluno);
             remocao = "Cancelamento aluno: " + aluno.getNome();
             operacoes.put(remocao, hora_cancelamento);
         }else{
+            this.deduzirAula(aluno);
             remocao = "Cancelamento tardio aluno: " + aluno.getNome();
             operacoes.put(remocao, hora_cancelamento);
         }
@@ -120,27 +130,27 @@ public class Inscricao {
     }
 
     public void checkIn(Aluno aluno, LocalDateTime dataHora) throws Exception {
-        this.verificar_aluno(aluno, dataHora);
+        this.verificarAluno(aluno, dataHora);
 
     }
 
-    private void deduzir_aula(Aluno aluno){
-        int n_aulas = aluno.getPlano().getN_aulas();
-        aluno.getPlano().setN_aulas(n_aulas-1);
+    private void deduzirAula(Aluno aluno){
+        int n_aulas = aluno.getQtdAulas();
+        aluno.setQtdAulas(n_aulas-1);
 
     }
 
-    public void finalizar_aula(){
-        String aula_realizada = "Aula realizada com os seguintes alunos: ";
+    public void finalizarAula(){
+        String aulaRealizada = "Aula realizada com os seguintes alunos: ";
         for(Participante inscrito: inscritos ){
             if(inscrito instanceof Aluno){
                 Aluno alun = (Aluno) inscrito;
-                deduzir_aula(alun);
-                aula_realizada += alun.getNome() + ',';
+                deduzirAula(alun);
+                aulaRealizada += alun.getNome() + ',';
             }
 
         }
-        operacoes.put(aula_realizada, aula.getData_hora());
+        operacoes.put(aulaRealizada, aula.getData_hora());
     }
 
 
