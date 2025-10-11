@@ -1,8 +1,9 @@
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 
-public class Aula {
+public class Aula implements Serializable {
     private LocalDateTime data_hora;
     private Instrutor instrutor;
     private Canoa canoa;

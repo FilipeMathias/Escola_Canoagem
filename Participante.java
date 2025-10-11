@@ -1,4 +1,6 @@
-public abstract class Participante {
+import java.io.Serializable;
+
+public abstract class Participante implements Serializable {
     private String nome;
 
 

@@ -1,4 +1,6 @@
-public class Canoa {
+import java.io.Serializable;
+
+public class Canoa implements Serializable {
     private int vagasRestantes;
     private boolean status;
 

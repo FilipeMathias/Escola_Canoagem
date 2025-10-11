@@ -1,6 +1,7 @@
+import java.io.Serializable;
 import java.time.YearMonth;
 
-public class Plano {
+public class Plano implements Serializable {
     private double valor;
     private int mes;
     private int ano;

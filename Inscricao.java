@@ -1,10 +1,11 @@
+import java.io.Serializable;
 import java.util.*;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 
 
 
-public class Inscricao {
+public class Inscricao implements Serializable {
     private Aula aula;
     private ArrayDeque<Participante> inscritos;
     private ArrayDeque<Participante> fila;
