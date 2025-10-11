@@ -20,8 +20,8 @@ public class Main {
 
         Canoa cano1 = new Canoa(4);
 
-        LocalDateTime data_aula = LocalDateTime.of(2025, 10, 03, 16, 30);
-        Aula aula1 = new Aula(data_aula,instrutor1,cano1);
+        LocalDateTime dataAula = LocalDateTime.of(2025, 10, 03, 16, 30);
+        Aula aula1 = new Aula(dataAula,instrutor1,cano1);
 
         Inscricao inscricao1 = new Inscricao(aula1);
         LocalDateTime data_inscricao1 = LocalDateTime.of(2025, 10, 03, 14, 30);
@@ -32,8 +32,8 @@ public class Main {
         inscricao1.checkIn(aluno2,data_inscricao2);
         inscricao1.checkIn(aluno3,data_inscricao3);
 
-        LocalDateTime hora_cancelamento = LocalDateTime.of(2025, 10, 03, 15, 30);
-        inscricao1.cancelar(hora_cancelamento, aluno3);
+        LocalDateTime horaCancelamento = LocalDateTime.of(2025, 10, 03, 15, 30);
+        inscricao1.cancelar(horaCancelamento, aluno3);
 
         inscricao1.finalizar_aula();
 
